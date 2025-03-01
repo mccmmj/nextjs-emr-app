@@ -1,0 +1,1 @@
+Provide a structured site map for this EMR app, including the primary pages, the hierarchy, and how they connect.

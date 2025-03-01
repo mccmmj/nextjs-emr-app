@@ -1,0 +1,1 @@
+Describe the structure of the home page, from top to bottom, including layout and content blocks.

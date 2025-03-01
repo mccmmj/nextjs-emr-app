@@ -1,0 +1,17 @@
+{
+  "name": "EMR App",
+  "short_name": "EMR",
+  "description": "Electronic Medical Records Application for healthcare providers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+} 

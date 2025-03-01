@@ -1,0 +1,1 @@
+Based on this project brief, list the must-have features for a EMR app PWA.  Give read-world examples if possible.

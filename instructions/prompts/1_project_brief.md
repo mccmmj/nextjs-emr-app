@@ -1,0 +1,1 @@
+I'm starting a Electronic Medical Records (EMR) app for handling patient documentation and billing.  It should help providers create documents, submit claims, and manage private health care practices.  Convert this into a concise project brief.
