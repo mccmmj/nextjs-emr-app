@@ -11,16 +11,21 @@ Clearly labeled “Billing & Claims” with a breadcrumb trail (e.g., Home > Bil
 Primary Action Buttons:
 A prominent “Submit New Claim” button allows users to quickly initiate the billing process.
 Additional buttons may include “Add New Invoice” or “Create Billing Entry” for administrative tasks.
+
 Search & Filter Controls:
 A search field to look up claims or invoices by patient name, claim ID, or date.
 Dropdown filters for status (Pending, Approved, Rejected), date range, or claim type to narrow the displayed list.
+
 3. Main Content Area
 
 Billing Summary Dashboard:
+
 Overview Cards:
 Display key metrics such as Total Billed Amount, Pending Claims, Approved Claims, and Outstanding Balances.
 These cards offer a quick snapshot of the financial health and claim statuses.
+
 Claims & Invoice List:
+
 Table or Card View:
 A structured list that shows each claim/invoice with essential details:
 Claim/Invoice ID
@@ -31,8 +36,10 @@ Amount
 Interactive Rows:
 Each entry is clickable, leading to a detailed view of the claim or invoice for further action.
 Detailed View Panel (Optional):
+
 Side Panel or Modal:
 When a claim or invoice is selected, a panel slides in or a modal appears with complete details, including billing history, line-item breakdown, attached documents, and options to edit or update status.
+
 4. Additional Tools & Widgets
 
 Recent Billing Activity Feed:

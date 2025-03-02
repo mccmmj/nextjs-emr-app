@@ -1,13 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { 
   MagnifyingGlassIcon as SearchIcon, 
   PlusIcon, 
   FunnelIcon as FilterIcon, 
   ArrowsUpDownIcon as SortAscendingIcon,
-  EllipsisVerticalIcon as DotsVerticalIcon
+  EllipsisVerticalIcon as DotsVerticalIcon,
+  CheckIcon,
+  HomeIcon
 } from '@heroicons/react/24/outline';
 
 // Mock data for patients
@@ -94,9 +98,68 @@ const patients = [
   },
 ];
 
+// Create a client-only version of the StatusFilterDropdown
+const ClientOnlyStatusFilter = dynamic(
+  () => Promise.resolve(({ statusFilter, setStatusFilter }: { statusFilter: string, setStatusFilter: (value: string) => void }) => {
+    return (
+      <div className="relative">
+        <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
+          Status Filter
+        </label>
+        <div className="relative">
+          <select
+            id="status-filter"
+            name="status"
+            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm rounded-md"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+        
+        {/* Visual indicator of current selection */}
+        <div className="mt-1">
+          <div className="flex items-center">
+            <div className={`w-3 h-3 rounded-full mr-1 ${
+              statusFilter === 'active' ? 'bg-green-500' : 
+              statusFilter === 'inactive' ? 'bg-red-500' : 'bg-gray-500'
+            }`}></div>
+            <span className="text-sm font-medium">
+              {statusFilter === 'active' ? 'Active Patients' : 
+               statusFilter === 'inactive' ? 'Inactive Patients' : 'All Patients'}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }),
+  { ssr: false } // This is the key - it prevents server-side rendering
+);
+
 export default function PatientsPage() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  
+  // We don't need isMounted anymore since we're using dynamic import with ssr:false
+  
+  useEffect(() => {
+    console.log('Mounting PatientsPage');
+  }, []);
+  
+  // Handle navigation to add patient page
+  const handleAddPatient = () => {
+    console.log('Navigating to add patient page');
+    router.push('/dashboard/patients/add');
+  };
   
   // Filter patients based on search term and status
   const filteredPatients = patients.filter(patient => {
@@ -104,13 +167,52 @@ export default function PatientsPage() {
                          patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          patient.phone.includes(searchTerm);
     
-    const matchesStatus = statusFilter === 'all' || patient.status.toLowerCase() === statusFilter.toLowerCase();
+    const matchesStatus = statusFilter === 'all' || 
+                          patient.status.toLowerCase() === statusFilter.toLowerCase();
     
     return matchesSearch && matchesStatus;
   });
 
+  // Helper function to render status badge
+  const renderStatusBadge = (status: string) => {
+    if (status === 'Active') {
+      return <span className="inline-flex rounded-full px-2 text-xs font-semibold leading-5 bg-green-100 text-green-800">Active</span>;
+    } else if (status === 'Inactive') {
+      return <span className="inline-flex rounded-full px-2 text-xs font-semibold leading-5 bg-red-100 text-red-800">Inactive</span>;
+    } else {
+      return <span className="inline-flex rounded-full px-2 text-xs font-semibold leading-5 bg-gray-100 text-gray-800">All</span>;
+    }
+  };
+
   return (
     <div className="px-4 sm:px-6 lg:px-8">
+      {/* Breadcrumbs */}
+      <nav className="flex mb-4" aria-label="Breadcrumb">
+        <ol className="flex items-center space-x-2">
+          <li>
+            <div>
+              <Link href="/dashboard" className="text-gray-400 hover:text-gray-500">
+                <HomeIcon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                <span className="sr-only">Dashboard</span>
+              </Link>
+            </div>
+          </li>
+          <li>
+            <div className="flex items-center">
+              <svg
+                className="h-5 w-5 flex-shrink-0 text-gray-300"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+              >
+                <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
+              </svg>
+              <span className="ml-2 text-sm font-medium text-gray-500">Patients</span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+      
       {/* Page header */}
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
@@ -122,7 +224,9 @@ export default function PatientsPage() {
         <div className="mt-4 sm:mt-0">
           <button
             type="button"
-            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+            onClick={handleAddPatient}
+            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 cursor-pointer"
+            aria-label="Add new patient"
           >
             <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
             Add Patient
@@ -132,7 +236,7 @@ export default function PatientsPage() {
 
       {/* Filters and search */}
       <div className="mt-6 sm:flex sm:items-center sm:justify-between">
-        <div className="flex items-center">
+        <div className="flex items-center space-x-4">
           <div className="relative rounded-md shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -145,19 +249,12 @@ export default function PatientsPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="ml-4">
-            <select
-              id="status"
-              name="status"
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm rounded-md"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
+          
+          {/* Use the client-only version of the dropdown */}
+          <ClientOnlyStatusFilter 
+            statusFilter={statusFilter} 
+            setStatusFilter={setStatusFilter} 
+          />
         </div>
         <div className="mt-4 sm:mt-0 flex items-center">
           <button
@@ -221,13 +318,7 @@ export default function PatientsPage() {
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{patient.phone}</td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{patient.lastVisit}</td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                          patient.status === 'Active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {patient.status}
-                        </span>
+                        {renderStatusBadge(patient.status)}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                         <button

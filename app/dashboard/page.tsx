@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   UserGroupIcon, 
@@ -11,6 +11,7 @@ import {
   ArrowSmallUpIcon as ArrowSmUpIcon,
   ArrowSmallDownIcon as ArrowSmDownIcon
 } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
 
 // Mock data for the dashboard
 const stats = [
@@ -67,7 +68,92 @@ const upcomingAppointments = [
 ];
 
 export default function DashboardPage() {
-  const [timeRange, setTimeRange] = useState('week');
+  // Initialize with empty string to avoid hydration mismatch
+  const [timeRange, setTimeRange] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
+  const router = useRouter();
+  
+  // Set default values after component has mounted
+  useEffect(() => {
+    setTimeRange('week');
+    setIsMounted(true);
+  }, []);
+
+  // Custom dropdown component that clearly shows the selected option
+  const TimeRangeDropdown = () => {
+    // Helper function to get display text for time range
+    const getTimeRangeDisplayText = () => {
+      switch(timeRange) {
+        case 'day': return 'Today';
+        case 'week': return 'This Week';
+        case 'month': return 'This Month';
+        case 'year': return 'This Year';
+        default: return 'This Week';
+      }
+    };
+
+    // Helper function to get icon color for time range
+    const getTimeRangeIconColor = () => {
+      switch(timeRange) {
+        case 'day': return 'bg-blue-500';
+        case 'week': return 'bg-green-500';
+        case 'month': return 'bg-purple-500';
+        case 'year': return 'bg-orange-500';
+        default: return 'bg-green-500';
+      }
+    };
+
+    return (
+      <div className="relative">
+        <label htmlFor="time-range" className="block text-sm font-medium text-gray-700 mb-1">
+          Time Range
+        </label>
+        <div className="relative">
+          {/* Custom dropdown with visible selected option */}
+          <div className="relative">
+            <button
+              type="button"
+              className="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
+              onClick={() => {
+                const select = document.getElementById('time-range');
+                if (select) {
+                  select.focus();
+                  select.click();
+                }
+              }}
+            >
+              <span className="flex items-center">
+                <span className={`flex-shrink-0 inline-block h-2 w-2 rounded-full ${getTimeRangeIconColor()}`} />
+                <span className="ml-3 block truncate font-medium">
+                  {isMounted ? getTimeRangeDisplayText() : 'This Week'}
+                </span>
+              </span>
+              <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </span>
+            </button>
+
+            {/* Hidden actual select element */}
+            <select
+              id="time-range"
+              name="timeRange"
+              className="absolute opacity-0 inset-0 w-full h-full cursor-pointer"
+              value={timeRange}
+              onChange={(e) => setTimeRange(e.target.value)}
+              suppressHydrationWarning
+            >
+              <option value="day">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="year">This Year</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -81,18 +167,8 @@ export default function DashboardPage() {
         </div>
         <div className="mt-4 sm:mt-0">
           <div className="flex space-x-3">
-            <select
-              id="timeRange"
-              name="timeRange"
-              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm rounded-md"
-              value={timeRange}
-              onChange={(e) => setTimeRange(e.target.value)}
-            >
-              <option value="day">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-              <option value="year">This Year</option>
-            </select>
+            {/* Use the custom TimeRangeDropdown component */}
+            <TimeRangeDropdown />
             <button
               type="button"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
@@ -146,7 +222,7 @@ export default function DashboardPage() {
                 <span className={`text-xs font-medium ${
                   stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {stat.change} from last {timeRange}
+                  {stat.change} from last {isMounted ? timeRange : 'week'}
                 </span>
               </div>
             </div>
@@ -267,7 +343,9 @@ export default function DashboardPage() {
         <div className="p-5 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           <button
             type="button"
-            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+            onClick={() => router.push('/dashboard/patients/add')}
+            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 cursor-pointer"
+            aria-label="Add new patient"
           >
             <UserGroupIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
             Add New Patient
